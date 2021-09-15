@@ -16,7 +16,7 @@ int main(){
     char* list[3] = {"/1", "/2", "/3"};
     FILE* fp;
     int randoms[3];
-    char* Contenido[3] = {"1, Los hurones del", "2, profesor de sistemas operativos son", "3, agentes encubiertos como Perry el Ornitorrinco"};
+    char* Contenido[3] = {"1, Los hurones del", "2, profesor de sistemas operativos son", "3, aula"};
     for(int i = 0; i<3; i++){
         randoms[i] = rand()%10;
     }
