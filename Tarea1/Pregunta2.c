@@ -32,8 +32,7 @@ int main(){
                 }
                 strcpy(dirname,security2);
                 strcat(dirname, list[x3]);
-                strcat(dirname, list[cont2]);
-                strcat(dirname, ".txt");
+                strcat(dirname, "/frase.txt");
                 if( access (dirname, F_OK) == 0){
                     fp = fopen(dirname, "r");
                     if(fp != NULL){
