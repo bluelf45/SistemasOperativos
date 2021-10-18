@@ -8,3 +8,7 @@
 
 static const int NumCasillas = 28;
 static const int DineroInicial = 100;
+
+int main(){
+	return 0;
+}
