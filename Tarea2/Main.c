@@ -27,6 +27,9 @@ static const int DineroInicial = 100;
 tablero CrearTablero{
 	tablero tab;
 	tab.mapeo = malloc(28*sizeof(casilla));
+	casilla suma;
+	suma.id = 1;
+	suma.valor = 50;
 	
 }
 
