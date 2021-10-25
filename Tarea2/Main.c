@@ -151,35 +151,49 @@ int main(){
 	int Proceso2 = fork();
 	if(Proceso1 == 0 && Proceso2 > 0){//Primer hijo
 		srand(getpid());
-		while(read(pipeph1[0], &msg1, sizeof(msg1))<0){}
-		msg1=Dado();
-		write(pipehp1[1], &msg1, sizeof(msg1));
+		int flag=1;
+		while(flag){
+			if(read(pipeph1[0], &msg1, sizeof(msg1))>0){
+				msg1=Dado();
+				write(pipehp1[1], &msg1, sizeof(msg1));
+				flag=0;
+			}
+		}
 	}
 	else if(Proceso2 == 0 && Proceso1 == 0){//2do hijo
 		srand(getpid());
-		while(read(pipeph2[0], &msg2, sizeof(msg2))<0){}
-		msg2=Dado();
-		write(pipehp2[1], &msg2, sizeof(msg2));
+		int flag = 1;
+		while(flag){
+			if(read(pipeph2[0], &msg2, sizeof(msg2))>0){
+				msg2=Dado();
+				write(pipehp2[1], &msg2, sizeof(msg2));
+				flag=0;
+			}
+		}
 	}
 	else if(Proceso2 == 0 && Proceso1 > 0){//3er Hijo
 		srand(getpid());
-		while(read(pipeph3[0], &msg3, sizeof(msg3))<0){}
-		msg3=Dado();
-		write(pipehp3[1], &msg3, sizeof(msg3));
+		int flag = 1;
+		while(flag){
+			if(read(pipeph3[0], &msg3, sizeof(msg3))>0){
+				msg3=Dado();
+				write(pipehp3[1], &msg3, sizeof(msg3));
+				flag=0;
+			}
+		}
 	}
 	else if(Proceso2 > 0 && Proceso1 > 0){//Padre de todos
 		write(pipeph1[1], &msg1, sizeof(int));
-
 		while(read(pipehp1[0], &msg1, sizeof(msg1))<0){};
-		printf("%d\n", msg1);
+		printf("Dado 1 ->%d\n", msg1);
 		write(pipeph2[1], &msg2, sizeof(int));
 
 		while(read(pipehp2[0], &msg2, sizeof(msg2))<0){};
-		printf("%d\n", msg2);
+		printf("Dado 2 ->%d\n", msg2);
 		write(pipeph3[1], &msg3, sizeof(int));
 
 		while(read(pipehp3[0], &msg3, sizeof(msg3))<0){};
-		printf("%d\n", msg3);
+		printf("Dado 3 ->%d\n", msg3);
 		printf("Padre\n");
 	}
 	return 0;
