@@ -149,7 +149,7 @@ int main(){
 
 	int Proceso1 = fork();
 	int Proceso2 = fork();
-	if(Proceso1 == 0 && Proceso2 > 0){//Primer hijo
+	if(Proceso1 == 0 && Proceso2 > 0){//Primer hijo (Tablero)
 		srand(getpid());
 		int flag=1;
 		while(flag){
@@ -160,7 +160,7 @@ int main(){
 			}
 		}
 	}
-	else if(Proceso2 == 0 && Proceso1 == 0){//2do hijo
+	else if(Proceso2 == 0 && Proceso1 == 0){//2do hijo (CPU)
 		srand(getpid());
 		int flag = 1;
 		while(flag){
@@ -171,7 +171,7 @@ int main(){
 			}
 		}
 	}
-	else if(Proceso2 == 0 && Proceso1 > 0){//3er Hijo
+	else if(Proceso2 == 0 && Proceso1 > 0){//3er Hijo (CPU)
 		srand(getpid());
 		int flag = 1;
 		while(flag){
@@ -182,7 +182,7 @@ int main(){
 			}
 		}
 	}
-	else if(Proceso2 > 0 && Proceso1 > 0){//Padre de todos
+	else if(Proceso2 > 0 && Proceso1 > 0){//Padre de todos (Jugador)
 		write(pipeph1[1], &msg1, sizeof(int));
 		while(read(pipehp1[0], &msg1, sizeof(msg1))<0){};
 		printf("Dado 1 ->%d\n", msg1);
