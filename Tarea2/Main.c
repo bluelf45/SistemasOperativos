@@ -8,8 +8,6 @@
 #include<sys/wait.h>
 #include <unistd.h>
 
-static const int NumCasillas = 28;
-static const int DineroInicial = 100;
 
 // INDICES
 // 0 -> START
@@ -30,9 +28,12 @@ void CrearTablero(tablero *tab){
 	casilla Casilla;
 
 	Casilla.id = 0;
-	Casilla.valor = 0;
+	Casilla.valor = 100;
 	//START y FREE
 	tab->mapeo[0] = Casilla;
+
+	Casilla.id = 5;
+	Casilla.valor = 0;
 	tab->mapeo[14] = Casilla;
 
 	//Casillas de suma/resta
@@ -98,16 +99,8 @@ void Movimiento(jugador *player, int valor){
 	player->posicion += valor;
 	if(player->posicion > 27){
 		player->posicion = player->posicion % 28;
+		player->dinero += 100;
 	}
-}
-
-int Dado(){
-	int r = rand()%6 + 1;
-	return r;
-}
-
-void dinero(jugador *player, int valor){
-	player->dinero= player->dinero +valor;
 }
 
 void printTablero(){
@@ -144,118 +137,171 @@ void initPlayer(jugador *player){
 	player->jail = 0;
 }
 
+int Dado(){
+	int r = rand()%6 + 1;
+	return r;
+}
+
+void dinero(jugador *player, int valor){
+	player->dinero= player->dinero +valor;
+}
+
 void AccionCasilla(tablero tab, jugador *player) {
 	int valor;
 	switch (tab.mapeo[player->posicion].id)
 	{
 		case 1://Suma o resta de dinero
 			dinero(player, tab.mapeo[player->posicion].valor);
-			printf("Caso 1\n");
 			break;
 		case 2://FORWARD
 			Movimiento(player, tab.mapeo[player->posicion].valor);
 			AccionCasilla(tab, player);
-			printf("Caso 2\n");
 			break;
 		case 3://BACKWARD
 			valor = tab.mapeo[player->posicion].valor * -1;
 			Movimiento(player, valor);
 			AccionCasilla(tab, player);
-			printf("Caso 3\n");
 			break;
 		case 4://JAIL
-			printf("Caso 4\n");
+			player->jail = 1;
 			break;
 	}
 }
 
-void printplayers(jugador* players){
-	for (int i =0; i < 3; i++){
-		printf("Jugador %d -> Dinero: %d ; Casilla %d\n", i+1, players[i].dinero, players[i].posicion);
-	}
+void printplayer(jugador player, int i){
+	printf("Jugador %d -> Dinero: %d ; Casilla %d\n", i, player.dinero, player.posicion);
 }
 
 int main(){
 	tablero tab;
 	tab.mapeo = malloc(sizeof(casilla)*28);
 	CrearTablero(&tab);
+	
+	jugador jugador1;
+	jugador jugador2;
+	jugador jugador3;
+	
+	initPlayer(&jugador1);
+	initPlayer(&jugador2);
+	initPlayer(&jugador3);
 
-	int msg = 0;
 	int pipeph1[2], pipehp1[2];
 	int pipeph2[2], pipehp2[2];
 	int pipeph3[2], pipehp3[2];
 
 	pipe(pipeph1);pipe(pipehp1);
-	//pipe(pipeph2);pipe(pipehp2);
-	//pipe(pipeph3);pipe(pipehp3);
-	printf(">>>Bienvenido a Monopoly<<<\n");
-	int flag = 1;
+	pipe(pipeph2);pipe(pipehp2);
+	pipe(pipeph3);pipe(pipehp3);
+
 	int Proceso1 = fork();
 	int Proceso2 = fork();
+
 	if(Proceso1 == 0 && Proceso2 > 0){//Primer hijo (Tablero)
-		jugador players[3];
-		while(flag){
-			while(read(pipeph1[0], &players, sizeof(players)*3) < 0){};
-			printf("\n");
-			//printTablero();
-			//printplayers(players);
-			write(pipehp1[1], &msg, sizeof(int));
-			read(pipeph1[0], &flag, sizeof(int));
+		int flag = 1;
+		while (flag){
+			printTablero();
+			write(pipehp1[1], &flag, sizeof(int));
+			while(read(pipeph1[0], &flag, sizeof(int))<0){};
 		}
-		free(tab.mapeo);
-		return 0;
 	}
 
-	else if(Proceso2 == 0 && Proceso1 == 0){//2do hijo
-		/*srand(getpid());
-		while(read(pipeph2[0], &flag, sizeof(flag))<0){};
-		while(flag){
-			if(read(pipeph2[0], &msg2, sizeof(msg2))>0){
-				msg2=Dado();
-				write(pipehp2[1], &msg2, sizeof(msg2));
-				flag=0;
-			}
-		}*/
-		free(tab.mapeo);
-		return 0;
-	}
-
-	else if(Proceso2 == 0 && Proceso1 > 0){//3er Hijo
-		/*srand(getpid());
-		while(flag){
-			if(read(pipeph3[0], &players, sizeof(jugador)*3)>0){
-				msg=Dado();
-				AccionCasilla(tab.mapeo[players[2].posicion], &players[2]);
-				write(pipehp3[1], &msg, sizeof(msg));
-				flag=0;
-			}
-		}*/
-		free(tab.mapeo);
-		return 0;
-	}
-
-	else if(Proceso2 > 0 && Proceso1 > 0){//Padre de todos
-		jugador players[3];
+	else if(Proceso2 > 0 && Proceso1 > 0){//Player proceso padre pipe1
 		srand(getpid());
-
-		initPlayer(&players[0]);
-		initPlayer(&players[1]);
-		initPlayer(&players[2]);
-		write(pipeph1[1], &players, sizeof(players));
-		char input[40];
+		int flag = 1;
+		char input[50];
 		int dado;
 		while(flag){
-			while(read(pipehp1[0], &msg, sizeof(int))<0){};
-			write(pipeph1[1], &players, sizeof(jugador)*3);
-			dado = Dado();
-			Movimiento(&players[0], dado);
-			AccionCasilla(tab, &players[0]);
-			printplayers(players);
-			if(players[0].dinero >=500){
-				flag=0;
-				write(pipeph1[1], &flag, sizeof(int));
+			while(read(pipehp1[0], &flag, sizeof(int))<0){};
+			printplayer(jugador1, 1);
+			printf(">>>Escriba para tirar el dado<<<\n");
+			scanf("%s",input);
+			if(jugador1.jail==0){
+				dado = Dado();
+				printf(">>> Jugador 1 tiro un %d<<<\n", dado);
+				Movimiento(&jugador1, dado);
+				AccionCasilla(tab, &jugador1);
 			}
+			else if(jugador1.jail==1){
+				jugador1.jail = 0;
+				printf("Jugador1 en prision, pierde su turno\n");
+			}
+			if(jugador1.dinero >=500){
+				flag = 0;
+				printf("Gana jugador 1\n");
+			}
+			write(pipeph2[1], &flag, sizeof(int));
+			while(read(pipehp2[0], &flag, sizeof(int))<0){};
+			write(pipeph3[1], &flag, sizeof(int));
+			while(read(pipehp3[0], &flag, sizeof(int))<0){};
+			printf(">>>Escriba para pasar a la siguiente ronda<<<\n");
+			scanf("%s",input);
+			write(pipeph1[1], &flag, sizeof(int));
 		}
+		printf("\n>>>PUNTAJES FINALES<<<\n");
+		printplayer(jugador1, 1);
+
+		write(pipeph2[1], &flag, sizeof(int));
+		while(read(pipehp2[0], &flag, sizeof(int))<0){};
+		write(pipeph3[1], &flag, sizeof(int));
+		while(read(pipehp3[0], &flag, sizeof(int))<0){};
+		return 0;	
+	}
+
+	else if(Proceso2 == 0 && Proceso1 > 0){//CPU2 pipe2
+		srand(getpid());
+		int flag = 1;
+		int dado;
+		while(flag){
+			while(read(pipeph2[0], &flag, sizeof(int))<0){};
+			printplayer(jugador2, 2);
+			if(jugador2.jail==0){
+				dado = Dado();
+				printf(">>> Jugador 2 tiro un %d<<<\n", dado);
+				Movimiento(&jugador2, dado);
+				AccionCasilla(tab, &jugador2);
+			}
+			else if(jugador2.jail==1){
+				jugador2.jail = 0;
+				printf("Jugador2 en prision, pierde su turno\n");
+			}
+			if(jugador2.dinero >=500){
+				flag = 0;
+				printf("Gana jugador 2\n");
+			}
+			write(pipehp2[1], &flag, sizeof(int));
+		}
+		while(read(pipeph2[0], &flag, sizeof(int))<0){};
+		write(pipehp2[1], &flag, sizeof(int));
+		printplayer(jugador2, 2);
+		
+	}
+
+	else if(Proceso2 == 0 && Proceso1 == 0){//CPU1  pipe3
+		srand(getpid());
+		int flag = 1;
+		int dado;
+		while(flag){
+			while(read(pipeph3[0], &flag, sizeof(int))<0){};
+			printplayer(jugador3, 3);
+			if(jugador3.jail==0){
+				dado = Dado();
+				printf(">>> Jugador 3 tiro un %d<<<\n", dado);
+				Movimiento(&jugador3, dado);
+				AccionCasilla(tab, &jugador3);
+			}
+			else if(jugador3.jail == 1){
+				jugador3.jail = 0;
+				printf("Jugador3 en prision, pierde su turno\n");
+			}
+			if(jugador3.dinero >=500){
+				flag = 0;
+				printf("Gana jugador 3\n");
+			}
+			write(pipehp3[1], &flag, sizeof(int));
+		}
+		while(read(pipeph3[0], &flag, sizeof(int))<0){};
+		write(pipehp3[1], &flag, sizeof(int));
+		printplayer(jugador3, 3);
 	}
 	free(tab.mapeo);
 	return 0;
