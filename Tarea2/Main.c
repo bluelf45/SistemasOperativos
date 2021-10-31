@@ -24,6 +24,11 @@
 // 7, 21 -> JAIL
 // 14 -> FREE
 // 4procesos, 2 procesos cpu, 1 proceso jugador y 1 proceso mapa, procesos CPU y mapa esperan a que el usuario actue
+
+/*
+	void CrearTablero(tablero *tab)
+	Crea el tablero de Monopoly.
+*/
 void CrearTablero(tablero *tab){
 	casilla Casilla;
 
@@ -95,6 +100,10 @@ void CrearTablero(tablero *tab){
 	tab->mapeo[21] = Casilla;
 }
 
+/*
+	void Movimiento(jugador *player, int valor)
+	Funcion que se usa para modificar la posicion del jugador, tambien aumenta el dinero si pasa por la casilla 0.
+*/
 void Movimiento(jugador *player, int valor){
 	player->posicion += valor;
 	if(player->posicion > 27){
@@ -102,7 +111,10 @@ void Movimiento(jugador *player, int valor){
 		player->dinero += 100;
 	}
 }
-
+/*
+	void printTablero()
+	Imprime el tablero
+*/
 void printTablero(){
 	printf("|-------------------------------------------------------|\n");
 	printf("| jail | +75  | -50  | -50  | +75  | +75  |Back 3| Free |\n");
@@ -130,22 +142,35 @@ void printTablero(){
 	printf("| 0    | 27   | 26   | 25   | 24   | 23   | 22   | 21   |\n");
 	printf("|-------------------------------------------------------|\n");
 }
-
+/*
+	void initPlayer(jugador *player)
+	inicia el jugador con los valores iniciales
+*/
 void initPlayer(jugador *player){
 	player->dinero = 100;
 	player->posicion = 0;
 	player->jail = 0;
 }
-
+/*
+	int Dado()
+	retorna un numero aleatorio entre 1 al 6
+*/
 int Dado(){
 	int r = rand()%6 + 1;
 	return r;
 }
 
+/*
+	void dinero(jugador *player, int valor)
+	modifica el dinero del jugador
+*/
 void dinero(jugador *player, int valor){
 	player->dinero= player->dinero +valor;
 }
-
+/*
+	void AccionCasilla(tablero tab, jugador *player)
+	Funcion que aplica la casilla, o sea, ejecuta la casilla y llama a diferentes funciones auxiliares para su correcto funcionamiento
+*/
 void AccionCasilla(tablero tab, jugador *player) {
 	int valor;
 	switch (tab.mapeo[player->posicion].id)
@@ -167,7 +192,10 @@ void AccionCasilla(tablero tab, jugador *player) {
 			break;
 	}
 }
-
+/*
+	void printplayer(jugador player, int i)
+	imprime el jugador y su inventario
+*/
 void printplayer(jugador player, int i){
 	printf("Jugador %d -> Dinero: %d ; Casilla %d\n", i, player.dinero, player.posicion);
 }
